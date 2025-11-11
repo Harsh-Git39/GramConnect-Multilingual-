@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ग्रामकनेक्ट - किसानों को दैनिक वेतन श्रमिकों से जोड़ना</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- नेविगेशन (Navigation) -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-left" onclick="navigateToLanding()">
+                <!-- लोगो: "users" आइकन आपकी थीम में लोगो का प्रतिनिधित्व करता है -->
+                <div class="logo-icon">
+                    <i data-lucide="users"></i>
+                </div>
+                <h1 class="logo-text">ग्रामकनेक्ट</h1>
+            </div>
+            <div class="nav-center">
+                <a href="#features" class="nav-link">विशेषताएँ</a>
+                <a href="#how-it-works" class="nav-link">यह कैसे काम करता है</a>
+                <a href="#about" class="nav-link">हमारे बारे में</a>
+            </div>
+            <div class="nav-right">
+                <button class="btn btn-primary" onclick="navigateToAuth()">शुरू करें</button>
+                <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                    <i data-lucide="menu"></i>
+                </button>
+            </div>
+        </div>
+        <div class="mobile-menu hidden" id="mobileMenu">
+            <a href="#features" class="mobile-nav-link" onclick="toggleMobileMenu()">विशेषताएँ</a>
+            <a href="#how-it-works" class="mobile-nav-link" onclick="toggleMobileMenu()">यह कैसे काम करता है</a>
+            <a href="#about" class="mobile-nav-link" onclick="toggleMobileMenu()">हमारे बारे में</a>
+            <button class="btn btn-primary mobile-get-started" onclick="navigateToAuth()">शुरू करें</button>
+        </div>
+    </nav>
+
+    <!-- हीरो सेक्शन (Hero Section) -->
+    <header class="container" style="text-align: center; padding: 4rem 1rem;">
+        <h1 style="font-size: 3rem; margin-bottom: 1rem; color: var(--dark-green);">
+            <span style="color: var(--primary-green);">सही</span> श्रमिक, <span style="color: var(--primary-green);">सही</span> समय पर
+        </h1>
+        <p style="font-size: 1.25rem; color: var(--text-gray); max-width: 800px; margin: 0 auto 2rem;">
+            ग्रामकनेक्ट किसानों को सीधे विश्वसनीय, दैनिक वेतन भोगी कृषि श्रमिकों से जोड़ता है।
+            बिचौलियों को हटाएँ, दक्षता बढ़ाएँ, और अपनी फसल को बचाएँ।
+        </p>
+        <button class="btn btn-primary" onclick="navigateToAuth()" style="padding: 1rem 2.5rem; font-size: 1.1rem;">
+            आज ही जुड़ें
+        </button>
+    </header>
+
+    <!-- विशेषताएँ (Features Section) -->
+    <section id="features" class="container" style="background-color: var(--light-green); border-radius: var(--radius);">
+        <h2 style="text-align: center; margin-bottom: 3rem;">ग्रामकनेक्ट की प्रमुख विशेषताएँ</h2>
+        <div class="stats-grid">
+            <div class="card" style="text-align: center; border-left: 4px solid #f97316;">
+                <i data-lucide="scan-line" style="color: #f97316; width: 32px; height: 32px; margin-bottom: 1rem;"></i>
+                <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">तुरंत नौकरी पोस्टिंग</h3>
+                <p style="color: var(--text-gray);">अपनी आवश्यकताएँ दर्ज करें और तुरंत हजारों श्रमिकों को पोस्ट करें।</p>
+            </div>
+            <div class="card" style="text-align: center; border-left: 4px solid #3b82f6;">
+                <i data-lucide="check-square" style="color: #3b82f6; width: 32px; height: 32px; margin-bottom: 1rem;"></i>
+                <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">सत्यापित श्रमिक</h3>
+                <p style="color: var(--text-gray);">गुणवत्ता सुनिश्चित करने के लिए सभी श्रमिकों का सत्यापन किया जाता है।</p>
+            </div>
+            <div class="card" style="text-align: center; border-left: 4px solid #ef4444;">
+                <i data-lucide="wallet" style="color: #ef4444; width: 32px; height: 32px; margin-bottom: 1rem;"></i>
+                <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">पारदर्शी भुगतान</h3>
+                <p style="color: var(--text-gray);">भुगतान दरें अग्रिम रूप से सहमत होती हैं, कोई छिपा हुआ शुल्क नहीं।</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- यह कैसे काम करता है (How It Works) -->
+    <section id="how-it-works" class="container">
+        <h2 style="text-align: center; margin-bottom: 3rem;">यह 3 आसान चरणों में कैसे काम करता है</h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 2rem; justify-content: center;">
+            <div class="card" style="max-width: 300px; text-align: center;">
+                <span style="font-size: 2rem; color: var(--primary-green); font-weight: 700;">1</span>
+                <h3 style="margin: 0.5rem 0;">पंजीकरण करें</h3>
+                <p style="color: var(--text-gray);">एक किसान या श्रमिक के रूप में एक त्वरित खाता बनाएँ।</p>
+            </div>
+            <div class="card" style="max-width: 300px; text-align: center;">
+                <span style="font-size: 2rem; color: var(--primary-green); font-weight: 700;">2</span>
+                <h3 style="margin: 0.5rem 0;">पोस्ट करें / खोजें</h3>
+                <p style="color: var(--text-gray);">किसान नौकरी पोस्ट करते हैं; श्रमिक उपलब्ध कार्य खोजते हैं।</p>
+            </div>
+            <div class="card" style="max-width: 300px; text-align: center;">
+                <span style="font-size: 2rem; color: var(--primary-green); font-weight: 700;">3</span>
+                <h3 style="margin: 0.5rem 0;">जुड़ें और कार्य करें</h3>
+                <p style="color: var(--text-gray);">सीधे चैट करें, पुष्टि करें और काम शुरू करें।</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- हमारे बारे में (About Section) -->
+    <section id="about" class="container">
+        <div style="background-color: var(--bg-gray); padding: 3rem; border-radius: var(--radius); text-align: center;">
+            <h2>हमारे बारे में</h2>
+            <p style="max-width: 900px; margin: 1rem auto 0; font-size: 1.1rem; color: var(--text-dark);">
+                ग्रामकनेक्ट की स्थापना ग्रामीण अर्थव्यवस्था को मजबूत करने के दृष्टिकोण के साथ की गई थी। हमारा मानना ​​है कि
+                प्रौद्योगिकी का उपयोग करके, हम किसानों को उनकी आवश्यक सहायता से और श्रमिकों को सम्मानजनक काम से जोड़ सकते हैं।
+                हम भारत के कृषि समुदाय के लिए एक विश्वसनीय मंच बनाने के लिए प्रतिबद्ध हैं।
+            </p>
+        </div>
+    </section>
+
+    <!-- फुटर (Footer) -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <div class="footer-logo">
+                        <i data-lucide="users"></i>
+                        <h3>ग्रामकनेक्ट</h3>
+                    </div>
+                    <p style="color: rgba(255, 255, 255, 0.8);">
+                        किसानों और श्रमिकों को जोड़ने वाला आपका डिजिटल साथी।
+                    </p>
+                </div>
+                <div class="footer-column">
+                    <h4 class="footer-heading">उत्पाद</h4>
+                    <ul class="footer-links">
+                        <li><a href="#features" class="footer-link">विशेषताएँ</a></li>
+                        <li><a href="#how-it-works" class="footer-link">यह कैसे काम करता है</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4 class="footer-heading">समर्थन</h4>
+                    <ul class="footer-links">
+                        <li><a href="#" class="footer-link">सहायता केंद्र</a></li>
+                        <li><a href="#" class="footer-link">हमसे संपर्क करें</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4 class="footer-heading">कंपनी</h4>
+                    <ul class="footer-links">
+                        <li><a href="#about" class="footer-link">हमारे बारे में</a></li>
+                        <li><a href="#" class="footer-link">गोपनीयता नीति</a></li>
+                        <li><a href="#" class="footer-link">सेवा की शर्तें</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 &copy GramConnect</p>
+            </div>
+        </div>
+    </footer>
+
+
+    <div class="modal" id="customMessageModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="customMessageTitle">संदेश</h3>
+                <button class="modal-close" onclick="closeCustomMessageModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="customMessageBody">
+                यह एक संदेश है।
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="closeCustomMessageModal()">ठीक है</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,675 @@
+// Initialize lucide icons when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+    
+    // Load user from localStorage
+    loadCurrentUser();
+    
+    // Load initial data based on page
+    if (window.location.pathname.includes('farmDash.html')) {
+        loadFarmerDashboard();
+    } else if (window.location.pathname.includes('workDash.html')) {
+        loadWorkerDashboard();
+    }
+    
+    // Close modals when clicking outside
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = 'none';
+        }
+    });
+});
+
+// Global variables
+let currentUser = null;
+let jobs = [];
+let applications = [];
+let workers = [];
+let messages = [];
+
+// === USER MANAGEMENT ===
+function loadCurrentUser() {
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        updateUserDisplay();
+    } else {
+        // Redirect to auth if not logged in
+        if (!window.location.pathname.includes('index.html') && !window.location.pathname.includes('auth.html')) {
+            window.location.href = 'auth.html';
+        }
+    }
+}
+
+function updateUserDisplay() {
+    const userNameEl = document.getElementById('userName');
+    if (userNameEl && currentUser) {
+        userNameEl.textContent = currentUser.name;
+    }
+}
+
+// === NAVIGATION FUNCTIONS ===
+function navigateToAuth() {
+    window.location.href = 'auth.html';
+}
+
+function navigateToLanding() {
+    window.location.href = 'index.html';
+}
+
+function toggleMobileMenu() {
+    const mobileMenu = document.getElementById('mobileMenu');
+    if (mobileMenu) {
+        mobileMenu.classList.toggle('show');
+    }
+}
+
+// === AUTHENTICATION FUNCTIONS ===
+function switchAuthTab(tab) {
+    const signupTab = document.getElementById('signupTab');
+    const loginTab = document.getElementById('loginTab');
+    const signupForm = document.getElementById('signupForm');
+    const loginForm = document.getElementById('loginForm');
+    const authTitle = document.getElementById('authTitle');
+    const authDescription = document.getElementById('authDescription');
+    
+    if (tab === 'signup') {
+        signupTab.classList.add('active');
+        loginTab.classList.remove('active');
+        signupForm.classList.remove('hidden');
+        loginForm.classList.add('hidden');
+        authTitle.textContent = 'Join GramConnect';
+        authDescription.textContent = 'Create your account to connect with the farming community';
+    } else {
+        loginTab.classList.add('active');
+        signupTab.classList.remove('active');
+        loginForm.classList.remove('hidden');
+        signupForm.classList.add('hidden');
+        authTitle.textContent = 'Welcome Back';
+        authDescription.textContent = 'Sign in to continue to your dashboard';
+    }
+}
+
+function selectUserType(type) {
+    const farmerRadio = document.getElementById('farmer');
+    const workerRadio = document.getElementById('worker');
+    
+    if (type === 'farmer') {
+        farmerRadio.checked = true;
+    } else {
+        workerRadio.checked = true;
+    }
+}
+
+function handleSignup(event) {
+    event.preventDefault();
+    
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const phone = document.getElementById('phone').value;
+    const location = document.getElementById('location').value;
+    const userType = document.querySelector('input[name="userType"]:checked').value;
+    
+    if (!password) {
+        alert('Please enter a password');
+        return;
+    }
+    
+    signupUser({ name, email, password, phone, location, userType });
+}
+
+function handleLogin(event) {
+    event.preventDefault();
+    
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    
+    loginUser(email, password);
+}
+
+// === DASHBOARD TAB FUNCTIONS ===
+function switchTab(tabName) {
+    // Remove active class from all tabs and tab buttons
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Add active class to selected tab and button
+    const selectedTab = document.getElementById(tabName + 'Tab');
+    if (selectedTab) {
+        selectedTab.classList.add('active');
+    }
+    
+    // Find and activate corresponding button
+    const buttons = document.querySelectorAll('.tab-btn');
+    buttons.forEach(btn => {
+        if (btn.textContent.toLowerCase().includes(tabName) || 
+            (tabName === 'overview' && btn.textContent === 'Overview') ||
+            (tabName === 'jobs' && (btn.textContent === 'My Jobs' || btn.textContent === 'Find Jobs')) ||
+            (tabName === 'workers' && btn.textContent === 'Find Workers') ||
+            (tabName === 'bookings' && btn.textContent === 'My Bookings') ||
+            (tabName === 'profile' && btn.textContent === 'Profile') ||
+            (tabName === 'messages' && btn.textContent === 'Messages')) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Load data for the selected tab
+    loadTabData(tabName);
+}
+
+function loadTabData(tabName) {
+    switch(tabName) {
+        case 'jobs':
+            if (currentUser?.type === 'farmer') {
+                loadFarmerJobs();
+            } else {
+                loadAvailableJobs();
+            }
+            break;
+        case 'workers':
+            loadAvailableWorkers();
+            break;
+        case 'bookings':
+            loadWorkerBookings();
+            break;
+        case 'messages':
+            loadMessages();
+            break;
+        case 'overview':
+            if (currentUser?.type === 'farmer') {
+                loadFarmerOverview();
+            } else {
+                loadWorkerOverview();
+            }
+            break;
+    }
+}
+
+// === FARMER DASHBOARD FUNCTIONS ===
+function loadFarmerDashboard() {
+    loadFarmerJobs();
+    loadFarmerOverview();
+    loadJobApplications();
+}
+
+function loadFarmerOverview() {
+    // Load recent applications (empty by default)
+    const applicationsContainer = document.querySelector('.card-content');
+    if (applicationsContainer && applications.length === 0) {
+        applicationsContainer.innerHTML = '<p class="no-data">No applications yet. Post a job to get started!</p>';
+    }
+    
+    // Update stats
+    updateFarmerStats();
+}
+
+function updateFarmerStats() {
+    const activeJobsEl = document.querySelector('.stat-value');
+    const totalAppsEl = document.querySelectorAll('.stat-value')[1];
+    const completedJobsEl = document.querySelectorAll('.stat-value')[2];
+    
+    if (activeJobsEl) activeJobsEl.textContent = jobs.filter(job => job.status === 'active').length || 0;
+    if (totalAppsEl) totalAppsEl.textContent = applications.length || 0;
+    if (completedJobsEl) completedJobsEl.textContent = jobs.filter(job => job.status === 'completed').length || 0;
+}
+
+function loadFarmerJobs() {
+    const jobsList = document.getElementById('jobsList');
+    if (!jobsList) return;
+    
+    if (jobs.length === 0) {
+        jobsList.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i data-lucide="briefcase"></i>
+                </div>
+                <h3>No Jobs Posted Yet</h3>
+                <p>Start by posting your first job to find workers in your area.</p>
+                <button class="btn btn-primary" onclick="openPostJobModal()">
+                    <i data-lucide="plus"></i>
+                    Post Your First Job
+                </button>
+            </div>
+        `;
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+        return;
+    }
+    
+    let html = '';
+    jobs.forEach(job => {
+        html += `
+            <div class="job-card">
+                <div class="job-header">
+                    <h3 class="job-title">${job.title}</h3>
+                    <span class="job-status ${job.status || 'active'}">${job.status || 'Active'}</span>
+                </div>
+                <p class="job-description">${job.description}</p>
+                <div class="job-details">
+                    <span><i data-lucide="dollar-sign"></i> ₹${job.payRate}/day</span>
+                    <span><i data-lucide="clock"></i> ${job.duration}</span>
+                    <span><i data-lucide="users"></i> ${job.applications || 0} applications</span>
+                </div>
+                <div class="job-actions">
+                    <button class="btn btn-outline" onclick="viewJobApplications('${job.id}')">
+                        View Applications
+                    </button>
+                    <button class="btn btn-danger" onclick="deleteJob('${job.id}')">
+                        Delete Job
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    
+    jobsList.innerHTML = html;
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+
+// === WORKER DASHBOARD FUNCTIONS ===
+function loadWorkerDashboard() {
+    loadAvailableJobs();
+    loadWorkerOverview();
+    loadWorkerBookings();
+}
+
+function loadWorkerOverview() {
+    // Load recent opportunities (empty by default)
+    const opportunitiesContainer = document.querySelector('.card-content');
+    if (opportunitiesContainer && jobs.length === 0) {
+        opportunitiesContainer.innerHTML = '<p class="no-data">No job opportunities available. Check back later!</p>';
+    }
+    
+    // Update stats
+    updateWorkerStats();
+}
+
+function updateWorkerStats() {
+    const earningsEl = document.querySelector('.stat-value');
+    const completedEl = document.querySelectorAll('.stat-value')[1];
+    const ratingEl = document.querySelectorAll('.stat-value')[2];
+    const availableEl = document.querySelectorAll('.stat-value')[3];
+    
+    if (earningsEl) earningsEl.textContent = '₹0'; // Start with 0
+    if (completedEl) completedEl.textContent = '0'; // Start with 0
+    if (ratingEl) ratingEl.textContent = '0.0'; // Start with 0
+    if (availableEl) availableEl.textContent = jobs.length || 0;
+}
+
+function loadAvailableJobs() {
+    const jobsList = document.getElementById('availableJobsList');
+    if (!jobsList) return;
+    
+    if (jobs.length === 0) {
+        jobsList.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i data-lucide="search"></i>
+                </div>
+                <h3>No Jobs Available</h3>
+                <p>There are currently no job opportunities in your area. Check back later or adjust your filters.</p>
+            </div>
+        `;
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+        return;
+    }
+    
+    let html = '';
+    jobs.forEach(job => {
+        html += `
+            <div class="job-card">
+                <div class="job-header">
+                    <div>
+                        <h3 class="job-title">${job.title}</h3>
+                        <p class="job-farmer">by ${job.farmerName}</p>
+                    </div>
+                    <span class="job-pay">₹${job.payRate}/day</span>
+                </div>
+                <p class="job-description">${job.description}</p>
+                <div class="job-details">
+                    <span><i data-lucide="clock"></i> ${job.timeSlot || 'Flexible'}</span>
+                    <span><i data-lucide="calendar"></i> ${job.duration}</span>
+                    <span><i data-lucide="map-pin"></i> ${job.location || 'Local Area'}</span>
+                </div>
+                <div class="job-actions">
+                    <button class="btn btn-primary" onclick="applyForJob('${job.id}')">
+                        Apply Now
+                    </button>
+                    <button class="btn btn-outline" onclick="contactFarmer('${job.farmerPhone}')">
+                        Contact Farmer
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    
+    jobsList.innerHTML = html;
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+    
+    // Update jobs found badge
+    const jobsFoundBadge = document.getElementById('jobsFoundBadge');
+    if (jobsFoundBadge) {
+        jobsFoundBadge.textContent = `${jobs.length} jobs found`;
+    }
+}
+
+function loadWorkerBookings() {
+    const bookingsList = document.getElementById('bookingsList');
+    if (!bookingsList) return;
+    
+    // For now, show empty state
+    bookingsList.innerHTML = `
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i data-lucide="calendar"></i>
+            </div>
+            <h3>No Bookings Yet</h3>
+            <p>Apply for jobs to see your bookings here.</p>
+        </div>
+    `;
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+
+// === JOB MANAGEMENT FUNCTIONS ===
+function openPostJobModal() {
+    const modal = document.getElementById('postJobModal');
+    if (modal) {
+        modal.style.display = 'block';
+    }
+}
+
+function closePostJobModal() {
+    const modal = document.getElementById('postJobModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function handlePostJob(event) {
+    event.preventDefault();
+    
+    const jobData = {
+        title: document.getElementById('jobTitle').value,
+        description: document.getElementById('jobDescription').value,
+        skillsRequired: document.getElementById('skillsRequired').value,
+        timeSlot: document.getElementById('timeSlot').value,
+        duration: document.getElementById('duration').value,
+        payRate: document.getElementById('payRate').value
+    };
+    
+    createJob(jobData);
+    closePostJobModal();
+    event.target.reset();
+}
+
+function applyForJob(jobId) {
+    if (!currentUser) {
+        alert('Please log in to apply for jobs');
+        return;
+    }
+    
+    applyToJob(jobId);
+}
+
+function contactFarmer(phone) {
+    if (phone) {
+        window.open(`tel:${phone}`, '_self');
+    } else {
+        alert('Farmer contact information not available');
+    }
+}
+
+function deleteJob(jobId) {
+    if (confirm('Are you sure you want to delete this job?')) {
+        // Remove from local array
+        jobs = jobs.filter(job => job.id !== jobId);
+        
+        // Reload the jobs display
+        loadFarmerJobs();
+        
+        // TODO: Call backend API to delete from database
+        // deleteJobFromServer(jobId);
+    }
+}
+
+function viewJobApplications(jobId) {
+    alert('Job applications feature coming soon!');
+}
+
+// === MESSAGES FUNCTIONS ===
+function loadMessages() {
+    const conversationsList = document.getElementById('conversationsList') || document.getElementById('workerConversationsList');
+    const chatMessages = document.getElementById('chatMessages') || document.getElementById('workerChatMessages');
+    
+    if (conversationsList) {
+        conversationsList.innerHTML = `
+            <div class="empty-state-small">
+                <p>No conversations yet</p>
+            </div>
+        `;
+    }
+    
+    if (chatMessages) {
+        chatMessages.innerHTML = `
+            <div class="empty-state-small">
+                <p>Select a conversation to start chatting</p>
+            </div>
+        `;
+    }
+}
+
+function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput && messageInput.value.trim()) {
+        alert('Messaging feature coming soon!');
+        messageInput.value = '';
+    }
+}
+
+function sendWorkerMessage() {
+    const messageInput = document.getElementById('workerMessageInput');
+    if (messageInput && messageInput.value.trim()) {
+        alert('Messaging feature coming soon!');
+        messageInput.value = '';
+    }
+}
+
+// === PROFILE FUNCTIONS ===
+function openEditProfileModal() {
+    const modal = document.getElementById('editProfileModal');
+    if (modal) {
+        modal.style.display = 'block';
+    }
+}
+
+function closeEditProfileModal() {
+    const modal = document.getElementById('editProfileModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function handleEditProfile(event) {
+    event.preventDefault();
+    alert('Profile update feature coming soon!');
+    closeEditProfileModal();
+}
+
+// === BACKEND API FUNCTIONS ===
+async function signupUser(userData) {
+    try {
+        const response = await fetch('/api/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            currentUser = result.user;
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            if (result.user.type === 'farmer') {
+                window.location.href = 'farmDash.html';
+            } else {
+                window.location.href = 'workDash.html';
+            }
+        } else {
+            alert('Signup failed: ' + result.error);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+async function loginUser(email, password) {
+    try {
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            currentUser = result.user;
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            if (result.user.type === 'farmer') {
+                window.location.href = 'farmDash.html';
+            } else {
+                window.location.href = 'workDash.html';
+            }
+        } else {
+            alert('Login failed: ' + result.error);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+async function createJob(jobData) {
+    try {
+        const response = await fetch('/api/jobs', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'user-id': currentUser?.id
+            },
+            body: JSON.stringify(jobData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            jobs.unshift(result.job);
+            loadFarmerJobs();
+            updateFarmerStats();
+            alert('Job posted successfully!');
+        } else {
+            alert('Failed to post job: ' + result.error);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+async function applyToJob(jobId) {
+    try {
+        const response = await fetch('/api/apply', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'user-id': currentUser?.id
+            },
+            body: JSON.stringify({ jobId })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('Application submitted successfully!');
+        } else {
+            alert('Failed to apply: ' + result.error);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+async function loadJobsFromServer() {
+    try {
+        const response = await fetch('/api/jobs');
+        const result = await response.json();
+        
+        if (result.success) {
+            jobs = result.jobs;
+            
+            // Reload appropriate dashboard content
+            if (currentUser?.type === 'farmer') {
+                loadFarmerJobs();
+                updateFarmerStats();
+            } else {
+                loadAvailableJobs();
+                updateWorkerStats();
+            }
+        }
+    } catch (error) {
+        console.error('Error loading jobs:', error);
+    }
+}
+
+function loadAvailableWorkers() {
+    const workersGrid = document.getElementById('workersGrid');
+    if (!workersGrid) return;
+    
+    workersGrid.innerHTML = `
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i data-lucide="users"></i>
+            </div>
+            <h3>No Workers Available</h3>
+            <p>Worker profiles will appear here once they join the platform.</p>
+        </div>
+    `;
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+
+function loadJobApplications() {
+    // This will be implemented when application management is added
+    applications = [];
+}
+
+function logout() {
+    currentUser = null;
+    localStorage.removeItem('currentUser');
+    window.location.href = 'index.html';
+}
+
+// Load jobs when page loads
+window.addEventListener('load', function() {
+    if (currentUser) {
+        loadJobsFromServer();
+    }
+});

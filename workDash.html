@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ग्रामकनेक्ट - श्रमिक डैशबोर्ड</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.css" rel="stylesheet">
+    <style>
+        /* खाली स्थिति/डेटा नहीं के लिए स्टाइल */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-gray);
+        }
+        .empty-state .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--border-gray);
+        }
+        .empty-state h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+        .empty-state p {
+            margin-bottom: 1.5rem;
+        }
+        .empty-state-small {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-gray);
+        }
+        .no-data {
+            text-align: center;
+            padding: 1rem;
+            color: var(--text-gray);
+            background-color: var(--bg-gray);
+            border-radius: var(--radius);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- साइडबार (Sidebar) -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <i data-lucide="users"></i>
+                <h2>ग्रामकनेक्ट</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="workDash.html" class="active">
+                    <i data-lucide="layout-dashboard"></i>
+                    डैशबोर्ड
+                </a>
+                <a href="#availableJobsSection">
+                    <i data-lucide="list-checks"></i>
+                    उपलब्ध नौकरियाँ
+                </a>
+                <a href="#" onclick="openEditProfileModal()">
+                    <i data-lucide="user"></i>
+                    प्रोफाइल
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn btn-secondary" onclick="handleLogout()">
+                    <i data-lucide="log-out"></i>
+                    लॉगआउट
+                </button>
+            </div>
+        </div>
+
+        <!-- मुख्य सामग्री (Main Content) -->
+        <div class="main-content">
+            <div class="main-header">
+                <h1 id="greetingText">स्वागत है, <span id="userName">श्रमिक</span>!</h1>
+                <div class="user-info">
+                    <i data-lucide="circle-user"></i>
+                    <span>श्रमिक डैशबोर्ड</span>
+                </div>
+            </div>
+
+            <!-- आँकड़े ग्रिड (Stats Grid) -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <div class="value" id="jobsAppliedCount">0</div>
+                        <div class="label">आवेदन की गई नौकरियाँ</div>
+                    </div>
+                    <div class="stat-icon"><i data-lucide="list-plus"></i></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <div class="value" id="approvedJobsCount">0</div>
+                        <div class="label">स्वीकृत नौकरियाँ</div>
+                    </div>
+                    <div class="stat-icon"><i data-lucide="check-circle"></i></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <div class="value" id="availableJobsCount">0</div>
+                        <div class="label">उपलब्ध नौकरियाँ</div>
+                    </div>
+                    <div class="stat-icon"><i data-lucide="search"></i></div>
+                </div>
+            </div>
+
+            <!-- उपलब्ध नौकरियों की सूची (Available Jobs List) -->
+            <div class="list-section" id="availableJobsSection">
+                <h2>उपलब्ध नौकरियों की सूची</h2>
+                <div id="availableJobsList">
+                    <!-- JS द्वारा जॉब कार्ड यहां लोड किए जाएंगे -->
+                    <div class="empty-state">
+                        <i data-lucide="package-open" class="empty-icon"></i>
+                        <h3>अभी कोई नौकरी उपलब्ध नहीं है</h3>
+                        <p>नई नौकरी पोस्टिंग के लिए बाद में जाँच करें या अपना खोज फ़िल्टर बदलें।</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- चैटिंग मोडल (Chat Modal) -->
+    <div class="modal" id="workerChatModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="workerChatTitle">किसान से चैट करें</h3>
+                <button class="modal-close" onclick="closeWorkerChatModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="workerChatBody">
+                <!-- चैट सामग्री यहां लोड की जाएगी -->
+                <div class="chat-area" style="height: 300px; overflow-y: auto; border: 1px solid var(--border-gray); padding: 1rem; margin-bottom: 1rem; border-radius: var(--radius); background-color: var(--bg-gray);">
+                    <p style="text-align: center; color: var(--text-gray);">चैट जल्द ही यहाँ लोड होगी...</p>
+                </div>
+                <div class="chat-input" style="display: flex; gap: 0.5rem;">
+                    <input type="text" id="workerChatMessage" class="form-input" placeholder="अपना संदेश लिखें...">
+                    <button class="btn btn-primary" onclick="sendWorkerMessage()">भेजें</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- प्रोफाइल संपादित करें मोडल (Edit Profile Modal) -->
+    <div class="modal" id="editProfileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">प्रोफाइल संपादित करें</h3>
+                <button class="modal-close" onclick="closeEditProfileModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form class="modal-form" onsubmit="handleEditProfile(event)">
+                <div class="form-group">
+                    <label for="editBio" class="form-label">बायो (अनुभव)</label>
+                    <textarea id="editBio" class="form-textarea" placeholder="किसानों को अपने अनुभव के बारे में बताएँ..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="editHourlyRate" class="form-label">प्रति घंटा दर (₹)</label>
+                    <input type="number" id="editHourlyRate" class="form-input" placeholder="200">
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">परिवर्तन सहेजें</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- कस्टम मैसेज/अलर्ट मोडल -->
+    <div class="modal" id="customMessageModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="customMessageTitle">संदेश</h3>
+                <button class="modal-close" onclick="closeCustomMessageModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="customMessageBody">
+                यह एक संदेश है।
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="closeCustomMessageModal()">ठीक है</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

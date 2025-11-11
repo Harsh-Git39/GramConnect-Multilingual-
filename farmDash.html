@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ग्रामकनेक्ट - किसान डैशबोर्ड</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.css" rel="stylesheet">
+    <style>
+        /* खाली स्थिति/डेटा नहीं के लिए स्टाइल */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-gray);
+        }
+        .empty-state .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--border-gray);
+        }
+        .empty-state h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+        .empty-state p {
+            margin-bottom: 1.5rem;
+        }
+        .empty-state-small {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-gray);
+        }
+        .no-data {
+            text-align: center;
+            padding: 1rem;
+            color: var(--text-gray);
+            background-color: var(--bg-gray);
+            border-radius: var(--radius);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- साइडबार (Sidebar) -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <i data-lucide="users"></i>
+                <h2>ग्रामकनेक्ट</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="farmDash.html" class="active">
+                    <i data-lucide="layout-dashboard"></i>
+                    डैशबोर्ड
+                </a>
+                <a href="#postJobSection" onclick="document.getElementById('postJobSection').scrollIntoView({ behavior: 'smooth' });">
+                    <i data-lucide="plus-circle"></i>
+                    नौकरी पोस्ट करें
+                </a>
+                <a href="#applicationsSection">
+                    <i data-lucide="user-check"></i>
+                    आवेदन देखें
+                </a>
+                <a href="#" onclick="showMessage('सूचना', 'प्रोफाइल संपादन सुविधा जल्द ही आ रही है!');">
+                    <i data-lucide="user"></i>
+                    प्रोफाइल
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn btn-secondary" onclick="handleLogout()">
+                    <i data-lucide="log-out"></i>
+                    लॉगआउट
+                </button>
+            </div>
+        </div>
+
+        <!-- मुख्य सामग्री (Main Content) -->
+        <div class="main-content">
+            <div class="main-header">
+                <h1 id="greetingText">नमस्ते, <span id="userName">किसान</span>!</h1>
+                <div class="user-info">
+                    <i data-lucide="circle-user"></i>
+                    <span>किसान डैशबोर्ड</span>
+                </div>
+            </div>
+
+            <!-- आँकड़े ग्रिड (Stats Grid) -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <div class="value" id="activeJobsCount">0</div>
+                        <div class="label">सक्रिय नौकरियाँ</div>
+                    </div>
+                    <div class="stat-icon"><i data-lucide="briefcase"></i></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <div class="value" id="totalApplicationsCount">0</div>
+                        <div class="label">कुल श्रमिकों ने आवेदन किया</div>
+                    </div>
+                    <div class="stat-icon"><i data-lucide="users"></i></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <div class="value" id="pendingApprovalsCount">0</div>
+                        <div class="label">लंबित स्वीकृतियाँ</div>
+                    </div>
+                    <div class="stat-icon"><i data-lucide="clock"></i></div>
+                </div>
+            </div>
+
+            <!-- मेरी पोस्ट की गई नौकरियाँ (My Posted Jobs) -->
+            <div class="list-section">
+                <h2>मेरे द्वारा पोस्ट की गई नौकरियाँ</h2>
+                <div id="farmerJobsList">
+                    <!-- JS द्वारा जॉब कार्ड यहां लोड किए जाएंगे -->
+                    <div class="empty-state">
+                        <i data-lucide="package-open" class="empty-icon"></i>
+                        <h3>कोई नौकरी पोस्ट नहीं की गई</h3>
+                        <p>अभी तक कोई नौकरी नहीं है। नीचे दिए गए फॉर्म का उपयोग करके पहली नौकरी पोस्ट करें।</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- आवेदन देखें (Applications Section) -->
+            <div class="list-section" id="applicationsSection">
+                <h2>आवेदन देखें</h2>
+                <div id="jobApplicationsList">
+                    <!-- JS द्वारा आवेदन सूची यहां लोड की जाएगी -->
+                    <div class="no-data">
+                        <i data-lucide="inbox"></i>
+                        <p>अभी तक कोई नया आवेदन नहीं आया है।</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- नौकरी पोस्ट करें (Post Job Section) -->
+            <div class="list-section job-post-form-section" id="postJobSection">
+                <div class="card">
+                    <h2>एक नई नौकरी पोस्ट करें</h2>
+                    <form id="postJobForm" onsubmit="handlePostJob(event)">
+                        <div class="form-group">
+                            <label for="jobTitle" class="form-label">नौकरी का शीर्षक</label>
+                            <input type="text" id="jobTitle" class="form-input" placeholder="उदाहरण: धान की रोपाई के लिए श्रमिक" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="cropType" class="form-label">फसल का प्रकार</label>
+                            <input type="text" id="cropType" class="form-input" placeholder="उदाहरण: धान, गेहूँ, गन्ना" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="description" class="form-label">विवरण</label>
+                            <textarea id="description" class="form-textarea" placeholder="कार्य, स्थान और आवश्यक कौशल का संक्षिप्त विवरण दें" required></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="requiredWorkers" class="form-label">आवश्यक श्रमिक (संख्या)</label>
+                                <input type="number" id="requiredWorkers" class="form-input" placeholder="10" min="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="location" class="form-label">कार्य स्थान (गाँव)</label>
+                                <input type="text" id="location" class="form-input" placeholder="आपका गाँव/फ़ार्म का नाम" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="timeSlot" class="form-label">समय स्लॉट</label>
+                                <select id="timeSlot" class="form-select" required>
+                                    <option value="">समय चुनें</option>
+                                    <option value="6am-2pm">सुबह 6:00 बजे - दोपहर 2:00 बजे</option>
+                                    <option value="8am-5pm">सुबह 8:00 बजे - शाम 5:00 बजे</option>
+                                    <option value="2pm-10pm">दोपहर 2:00 बजे - रात 10:00 बजे</option>
+                                    <option value="flexible">लचीला</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="duration" class="form-label">कार्य अवधि</label>
+                                <input type="text" id="duration" class="form-input" placeholder="उदाहरण: 3 दिन" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="payRate" class="form-label">भुगतान दर (₹/दिन)</label>
+                            <input type="number" id="payRate" class="form-input" placeholder="500" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">नौकरी पोस्ट करें</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- चैटिंग मोडल (Chat Modal) -->
+    <div class="modal" id="chatModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="chatTitle">श्रमिक से चैट करें</h3>
+                <button class="modal-close" onclick="closeChatModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="chatBody">
+                <!-- चैट सामग्री यहां लोड की जाएगी -->
+                <div class="chat-area" style="height: 300px; overflow-y: auto; border: 1px solid var(--border-gray); padding: 1rem; margin-bottom: 1rem; border-radius: var(--radius); background-color: var(--bg-gray);">
+                    <p style="text-align: center; color: var(--text-gray);">चैट जल्द ही यहाँ लोड होगी...</p>
+                </div>
+                <div class="chat-input" style="display: flex; gap: 0.5rem;">
+                    <input type="text" id="farmerChatMessage" class="form-input" placeholder="अपना संदेश लिखें...">
+                    <button class="btn btn-primary" onclick="sendFarmerMessage()">भेजें</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- कस्टम मैसेज/अलर्ट मोडल -->
+    <div class="modal" id="customMessageModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="customMessageTitle">संदेश</h3>
+                <button class="modal-close" onclick="closeCustomMessageModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="customMessageBody">
+                यह एक संदेश है।
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="closeCustomMessageModal()">ठीक है</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
